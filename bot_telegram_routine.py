@@ -62,6 +62,11 @@ def help_message (message):
     /start - начать работу со мной
     /help - получить справку по командам
     /addhabit - привычка которую надо сохранить
+    /complete - удалить привыяку
+    /statistics - отчеты о выполнении привычек
+    /diagram - график выполнения
+    /list - список привычек
+    /remind - напомнить о привычках    
     """
     bot.send_message(message.chat.id, text=help_text)
 
@@ -90,5 +95,33 @@ def process_frequency_step(message, user_id, habit_name, description):
     conn.commit()
     conn.close()
     bot.send_message(message.chat.id, "Привычка сохранена успешно!")
+
+# Список привычек (можете модифицировать или динамически загружать)
+import schedule
+import time
+from threading import Thread
+
+habits = [
+    "Выпить стакан воды",
+    "Сделать разминку",
+    "Прочитать 10 страниц книги"
+]
+def send_habit_reminder(chat_id):
+    for habit in habits:
+        bot.send_message(chat_id, text=f"Не забудь сегодня: {habit}")
+    print("Напоминание отправлено")
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Привет! Я буду напоминать тебе о привычках каждый день.")
+    # Запланировать ежедневные напоминания на 9 утра
+    schedule.every().day.at("09:00").do(send_habit_reminder, message.chat.id)
+
+def run_scheduler():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 
 bot.infinity_polling(none_stop=True, interval=0)
