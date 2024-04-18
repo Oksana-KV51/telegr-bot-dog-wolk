@@ -4,7 +4,7 @@ import time #используется в основном для задерже�
 import threading #ужен для работы с потоками
 import random
 
-bot = telebot.TeleBot('введите токен')
+bot = telebot.TeleBot('6606549790:AAFB_d7qQIPZnmIEcKTGyKH3ArwnHVfr9u4')
 
 @bot.message_handler(commands=['start'])
 def start_message (message):
