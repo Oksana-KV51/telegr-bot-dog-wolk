@@ -8,7 +8,6 @@ import threading #ужен для работы с потоками
 import random
 import sqlite3
 
-
 TOKEN = '7121309234:AAFP6PfgdA1n9krO0OROiRI3EkdQSeYVETU'  # Замените YOUR_BOT_TOKEN на токен вашего бота
 bot = telebot.TeleBot(TOKEN)
 
@@ -68,15 +67,26 @@ def help_message (message):
     /start - начать работу
     /help - получить справку по командам
     /positive_habits - список положительных привычек
-    /negative_habits - список отрицательных привычек
-    /list_remind - список напомнинаний   
-    /addhabit - привычка которую надо сохранить
-    /complete - удалить привычку
+    /negative_habits - список отрицательных привычек   
+    /add_positive - положительная привычка, которую надо сохранить
+    /add_negative - отрицательная привычка, которую надо сохранить
+    /list_remind - список напомнинаний 
+    /add_remind - добавить напоминание
+    /delete_remind - удалить напоминане
     /statistics - отчеты о выполнении привычек
     /diagram - график выполнения 
     """
     bot.send_message(message.chat.id, text=help_text)
 
+# отраьотка комманды positive_habits и negative_habits
+def fetch_habits(db_name):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY, habit TEXT)")
+    cursor.execute("SELECT habit FROM habits")
+    habits = cursor.fetchall()
+    conn.close()
+    return habits
 @bot.message_handler(commands=['positive_habits'])
 def show_positive_habits(message):
     habits = fetch_habits('positive_habits1.db')
@@ -94,6 +104,58 @@ def show_negative_habits(message):
         bot.send_message(message.chat.id, "Негативные привычки:\n" + response)
     else:
         bot.send_message(message.chat.id, "Список негативных привычек пуст.")
+
+#добавление положительных привычек и отрицательных
+def add_habit(db_name, habit):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY, habit TEXT)")
+    cursor.execute("INSERT INTO habits (habit) VALUES (?)", (habit,))
+    conn.commit()
+    conn.close()
+
+@bot.message_handler(commands=['add_positive'])
+def add_positive(message):
+    msg = bot.send_message(message.chat.id, "Введите положительную привычку, которую хотите добавить:")
+    bot.register_next_step_handler(msg, process_positive_habit)
+
+def process_positive_habit(message):
+    habit = message.text
+    add_habit('positive_habits1.db', habit)
+    bot.send_message(message.chat.id, "Положительная привычка добавлена!")
+
+@bot.message_handler(commands=['add_negative'])
+def add_negative(message):
+    msg = bot.send_message(message.chat.id, "Введите негативную привычку, которую хотите добавить:")
+    bot.register_next_step_handler(msg, process_negative_habit)
+
+def process_negative_habit(message):
+    habit = message.text
+    add_habit('negative_habits1.db', habit)
+    bot.send_message(message.chat.id, "Негативная привычка добавлена!")
+
+#список напоминаний
+@bot.message_handler(commands=['reminders'])
+def show_reminders(message):
+    conn = sqlite3.connect('reminders.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM reminders")
+    reminders = cursor.fetchall()
+    conn.close()
+    if reminders:
+        response = "\n".join([f"{reminder[0]}: {reminder[1]}" for reminder in reminders])
+        bot.send_message(message.chat.id, "Напоминания:\n" + response)
+    else:
+        bot.send_message(message.chat.id, "Список напоминаний пуст.")
+
+#добавление напоминаний
+@bot.message_handler(commands=['add_remind'])
+def add_reminder(message):
+    msg = bot.send_message(message.chat.id, "Введите напоминание:")
+    bot.register_next_step_handler(msg, process_reminder)
+
+#удаление напоминаний
+
 
 
 
