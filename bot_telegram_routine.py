@@ -2,6 +2,7 @@
 #Создаем код бота для общения с пользователем и выполнения функций добавления, отслеживания и отмечания выполнения привычек.
 #pip install pyTelegramBotAPI
 import telebot
+from telebot import types
 import datetime #позволяет работать с датой и работать со временем
 import time #используется в основном для задержек. То есть, с помощью него можно, например, программу приостановить на 60 или 5 секунд, или на какое-то другое время. Потом она снова начнет работать.
 import threading #ужен для работы с потоками
@@ -46,7 +47,6 @@ def send_welcome(message):
     user_id = message.from_user.id
     first_name = message.from_user.first_name
     username = message.from_user.username
-
     # Сохранение пользователя в базе данных
     add_user(user_id, first_name, username)
 
@@ -56,8 +56,10 @@ def send_welcome(message):
     # reminder_thread = threading.Thread(target=send_reminders, args=(message.chat.id,))# создаем поток
     # reminder_thread.start()# запускаем поток
 
+
 if __name__ == '__main__':
     create_table()  # Создать таблицу, если она еще не создана
+
 
 # Обработчик команды help
 @bot.message_handler(commands=['help'])
@@ -70,7 +72,7 @@ def help_message (message):
     /negative_habits - список отрицательных привычек   
     /add_positive - положительная привычка, которую надо сохранить
     /add_negative - отрицательная привычка, которую надо сохранить
-    /list_remind - список напомнинаний 
+    /reminders - список напомнинаний 
     /add_remind - добавить напоминание
     /delete_remind - удалить напоминане
     /statistics - отчеты о выполнении привычек
@@ -78,7 +80,7 @@ def help_message (message):
     """
     bot.send_message(message.chat.id, text=help_text)
 
-# отраьотка комманды positive_habits и negative_habits
+# отработка комманды positive_habits и negative_habits
 def fetch_habits(db_name):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
